@@ -1,1 +1,1 @@
-from . import start, course, card
+from . import start, course, card, admin
