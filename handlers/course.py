@@ -4,7 +4,7 @@ from handlers.admin import admin_data  # Используем админ-нас�
 
 router = Router()
 
-@router.message(Text(text="✨Курс по нейрографике", ignore_case=True))
+@router.message(Text(text="Курс по нейрографике", ignore_case=True))
 async def course_handler(message: types.Message):
     course_text = admin_data.get("course_text", (
         "✨Курс по нейрографике:\n"
