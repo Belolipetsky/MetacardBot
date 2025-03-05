@@ -4,7 +4,7 @@ from config import ADMINS
 
 router = Router()
 
-# Глобальные переменные для хранения админ-настроек
+# Глобальные переменные для хранения настроек
 admin_data = {
     "greeting_text": "Привет, я Мария и помогаю людям решать проблемы через нейрографику.",
     "course_text": (
@@ -15,21 +15,25 @@ admin_data = {
     "course_images": []
 }
 
-# Функция для проверки, является ли пользователь админом
 def is_admin(username: str) -> bool:
-    return username in ADMINS
+    # Если username отсутствует, считаем, что пользователь не админ
+    if not username:
+        return False
+    return username.lower() in [admin.lower() for admin in ADMINS]
 
 @router.message(Command("admin"))
 async def admin_panel(message: types.Message):
-    username = message.from_user.username  # Получаем username пользователя
-    if not username or not is_admin(username):
+    username = message.from_user.username
+    # Для отладки можно раскомментировать следующую строку:
+    # print(f"Username: {username}")
+    if not is_admin(username):
         return
     text = (
         "🔹 Админ-панель 🔹\n\n"
-        "/setgreeting <текст> - изменить приветствие\n"
-        "/setcourse <текст> - изменить курс\n"
-        "/addgreetingpic - добавить фото для приветствия (ответьте на фото)\n"
-        "/addcoursepic - добавить фото для курса (ответьте на фото)\n"
+        "/setgreeting <текст> - изменить приветственное сообщение\n"
+        "/setcourse <текст> - изменить описание курса\n"
+        "/addgreetingpic - добавить картинку для приветствия (ответьте на фото)\n"
+        "/addcoursepic - добавить картинку для курса (ответьте на фото)\n"
         "/viewadmin - показать текущие настройки\n"
     )
     await message.answer(text)
@@ -37,7 +41,7 @@ async def admin_panel(message: types.Message):
 @router.message(Command("setgreeting"))
 async def set_greeting(message: types.Message):
     username = message.from_user.username
-    if not username or not is_admin(username):
+    if not is_admin(username):
         return
     new_text = message.get_args()
     if not new_text:
@@ -49,7 +53,7 @@ async def set_greeting(message: types.Message):
 @router.message(Command("setcourse"))
 async def set_course(message: types.Message):
     username = message.from_user.username
-    if not username or not is_admin(username):
+    if not is_admin(username):
         return
     new_text = message.get_args()
     if not new_text:
@@ -61,7 +65,7 @@ async def set_course(message: types.Message):
 @router.message(Command("addgreetingpic"))
 async def add_greeting_pic(message: types.Message):
     username = message.from_user.username
-    if not username or not is_admin(username):
+    if not is_admin(username):
         return
     if message.reply_to_message and message.reply_to_message.photo:
         photo = message.reply_to_message.photo[-1]
@@ -74,7 +78,7 @@ async def add_greeting_pic(message: types.Message):
 @router.message(Command("addcoursepic"))
 async def add_course_pic(message: types.Message):
     username = message.from_user.username
-    if not username or not is_admin(username):
+    if not is_admin(username):
         return
     if message.reply_to_message and message.reply_to_message.photo:
         photo = message.reply_to_message.photo[-1]
@@ -87,7 +91,7 @@ async def add_course_pic(message: types.Message):
 @router.message(Command("viewadmin"))
 async def view_admin_data(message: types.Message):
     username = message.from_user.username
-    if not username or not is_admin(username):
+    if not is_admin(username):
         return
     text = (
         f"📌 **Текущие настройки:**\n\n"
@@ -97,4 +101,3 @@ async def view_admin_data(message: types.Message):
         f"🖼 **Картинки курса:** {len(admin_data['course_images'])} шт."
     )
     await message.answer(text, parse_mode="Markdown")
-
