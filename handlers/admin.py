@@ -1,10 +1,10 @@
+# handlers/admin.py
 from aiogram import Router, types
 from aiogram.filters import Command
-from config import ADMINS
+from config.config import ADMIN_USERNAMES
 
 router = Router()
 
-# Глобальные переменные для хранения настроек
 admin_data = {
     "greeting_text": "Привет, я Мария и помогаю людям решать проблемы через нейрографику.",
     "course_text": (
@@ -16,16 +16,13 @@ admin_data = {
 }
 
 def is_admin(username: str) -> bool:
-    # Если username отсутствует, считаем, что пользователь не админ
     if not username:
         return False
-    return username.lower() in [admin.lower() for admin in ADMINS]
+    return username.lower() in [admin.lower() for admin in ADMIN_USERNAMES]
 
 @router.message(Command("admin"))
 async def admin_panel(message: types.Message):
     username = message.from_user.username
-    # Для отладки можно раскомментировать следующую строку:
-    # print(f"Username: {username}")
     if not is_admin(username):
         return
     text = (
