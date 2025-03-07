@@ -17,13 +17,11 @@ bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
-# Импортируем обработчики
-from handlers import auth, start, course, card, payments, session, admin
+# Импорт роутеров (обработчиков)
+from handlers import auth, card, payments, session, admin, start
 
-# Регистрируем роутеры
 dp.include_router(auth.router)
-dp.include_router(start.router)
-dp.include_router(course.router)
+dp.include_router(start.router)  # Дополнительный обработчик для команды /home, если нужен
 dp.include_router(card.router)
 dp.include_router(payments.router)
 dp.include_router(session.router)
