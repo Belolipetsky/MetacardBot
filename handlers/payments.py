@@ -1,4 +1,3 @@
-# handlers/payments.py
 from aiogram import Router, types
 from aiogram.filters import Text
 from utils.storage import add_attempts
@@ -17,9 +16,7 @@ async def purchase_attempts(message: types.Message):
     title = option
     description = f"Покупка {price_info['attempts']} попыток для вытягивания карт."
     currency = "RUB"
-    prices = [
-        types.LabeledPrice(label=option, amount=price)
-    ]
+    prices = [types.LabeledPrice(label=option, amount=price)]
     await message.answer_invoice(
         title=title,
         description=description,
@@ -27,7 +24,7 @@ async def purchase_attempts(message: types.Message):
         currency=currency,
         prices=prices,
         start_parameter="purchase_attempts",
-        payload=str(price_info["attempts"])
+        payload=str(price_info["attempts"])  # Количество попыток передаётся в payload
     )
 
 @router.pre_checkout_query()
@@ -40,4 +37,5 @@ async def successful_payment(message: types.Message):
     user_id = message.from_user.id
     add_attempts(user_id, attempts_purchased)
     log_payment(user_id, attempts_purchased, message.successful_payment.total_amount)
-    await message.answer(f"✅ Оплата прошла успешно! Вам добавлено {attempts_purchased} попыток.")
+    await message.answer(f"✅ Оплата прошла успешно! Тебе добавлено {attempts_purchased} попыток.")
+
