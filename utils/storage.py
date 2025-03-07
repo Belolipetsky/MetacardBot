@@ -1,23 +1,14 @@
 # utils/storage.py
 
-# Простое in-memory хранилище пользователей.
+# Хранилище пользователей: ключ – user_id, значение – данные пользователя
 users = {}
 
 def register_user(user_id: int, username: str, name: str, phone: str):
     if user_id not in users:
-        # При регистрации выдаем 1 бесплатную попытку
-        users[user_id] = {
-            "username": username,
-            "name": name,
-            "phone": phone,
-            "attempts": 1
-        }
+        # При регистрации выдаём 1 бесплатную попытку
+        users[user_id] = {"username": username, "name": name, "phone": phone, "attempts": 1}
     else:
-        users[user_id].update({
-            "username": username,
-            "name": name,
-            "phone": phone,
-        })
+        users[user_id].update({"username": username, "name": name, "phone": phone})
 
 def get_attempts(user_id: int) -> int:
     return users.get(user_id, {}).get("attempts", 0)
@@ -34,6 +25,3 @@ def use_attempt(user_id: int) -> bool:
         return True
     return False
 
-def log_action(user_id: int, action: str, details: str = ""):
-    # Заглушка для логирования (в дальнейшем можно добавить запись в Google Таблицы)
-    print(f"LOG: user_id={user_id}, action={action}, details={details}")
