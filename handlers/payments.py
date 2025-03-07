@@ -27,14 +27,14 @@ async def purchase_attempts(message: types.Message):
         currency=currency,
         prices=prices,
         start_parameter="purchase_attempts",
-        payload=str(price_info["attempts"])  # Количество попыток передаётся в payload
+        payload=str(price_info["attempts"])
     )
 
 @router.pre_checkout_query()
 async def pre_checkout(pre_checkout_q: types.PreCheckoutQuery):
     await pre_checkout_q.answer(ok=True)
 
-@router.message(content_types=types.ContentType.SUCCESSFUL_PAYMENT)
+@router.message(lambda message: getattr(message, "successful_payment", None) is not None)
 async def successful_payment(message: types.Message):
     attempts_purchased = int(message.successful_payment.invoice_payload)
     user_id = message.from_user.id
