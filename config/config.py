@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_TOKEN = os.getenv("API_TOKEN")
-ADMIN_USERNAMES = os.getenv("ADMINS", "").split(",")
+ADMIN_USERNAMES = [admin.strip() for admin in os.getenv("ADMINS", "").split(",")]
 PAYMENT_PROVIDER_TOKEN = os.getenv("PAYMENT_PROVIDER_TOKEN", "TEST_TOKEN")
 
 # Опции для покупки попыток (цены в копейках)
