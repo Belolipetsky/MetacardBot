@@ -1,6 +1,7 @@
+# handlers/course.py
 from aiogram import Router, types
 from aiogram.filters import Text
-from handlers.admin import admin_data  # Используем админ-настройки для описания курса
+from handlers.admin import admin_data  # Используем настройки админа для описания курса
 
 router = Router()
 
