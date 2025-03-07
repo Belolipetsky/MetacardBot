@@ -1,55 +1,102 @@
-# handlers/auth.py
+# handlers/admin.py
 from aiogram import Router, types
 from aiogram.filters import Command
-from utils.storage import register_user
-from utils.spreadsheet import log_registration
-from utils.keyboards import phone_keyboard, main_menu_keyboard
-import logging
+from config.config import ADMIN_USERNAMES
 
 router = Router()
 
-# Временное хранилище для номера телефона
-pending_phones = {}
+admin_data = {
+    "greeting_text": "Привет, я Маша и помогаю людям решать проблемы через нейрографику.",
+    "course_text": (
+        "Курс по нейрографике:\n"
+        "В этом курсе вы узнаете, как использовать нейрографику для решения жизненных проблем."
+    ),
+    "greeting_images": [],
+    "course_images": []
+}
 
-@router.message(Command("start"))
-async def start_handler(message: types.Message):
-    welcome_text = (
-        "✨ Привет, я Маша!\n"
-        "Я эксперт по нейрографике и знаю, как через специальные алгоритмы и метафорические карты помочь тебе увидеть скрытые решения и получить инсайт.\n\n"
-        "Что это даёт?\n"
-        "🖊 Помогает взглянуть на ситуацию под другим углом\n"
-        "🔮 Достаёт из подсознания ключевые послания и ответы\n"
-        "⚡ Даёт ясность, уверенность и энергию для действий\n\n"
-        "💡 Давай начнём! Чтобы я могла лучше помочь тебе, нужно немного информации.\n"
-        "📌 Нажми на кнопку ниже и отправь свой номер телефона:"
+def is_admin(username: str) -> bool:
+    if not username:
+        return False
+    return username.lower() in [admin.lower() for admin in ADMIN_USERNAMES]
+
+@router.message(Command("admin"))
+async def admin_panel(message: types.Message):
+    username = message.from_user.username
+    if not is_admin(username):
+        return
+    text = (
+        "🔹 Админ-панель 🔹\n\n"
+        "/setgreeting <текст> - изменить приветственное сообщение\n"
+        "/setcourse <текст> - изменить описание курса\n"
+        "/addgreetingpic - добавить картинку для приветствия (ответьте на фото)\n"
+        "/addcoursepic - добавить картинку для курса (ответьте на фото)\n"
+        "/viewadmin - показать текущие настройки\n"
     )
-    await message.answer(welcome_text, reply_markup=phone_keyboard)
+    await message.answer(text)
 
-@router.message(lambda message: message.contact is not None)
-async def contact_handler(message: types.Message):
-    contact = message.contact
-    phone = contact.phone_number
-    user_id = message.from_user.id
-    pending_phones[user_id] = phone
-    await message.answer("✨ Отлично! Теперь скажи, как тебя зовут?")
+@router.message(Command("setgreeting"))
+async def set_greeting(message: types.Message):
+    username = message.from_user.username
+    if not is_admin(username):
+        return
+    new_text = message.get_args()
+    if not new_text:
+        await message.answer("❌ Укажите новый текст приветствия.")
+        return
+    admin_data["greeting_text"] = new_text
+    await message.answer("✅ Приветствие обновлено.")
 
-@router.message(lambda message: message.contact is None)
-async def name_handler(message: types.Message):
-    user_id = message.from_user.id
-    if user_id not in pending_phones:
-        return  # Сообщение не связано с авторизацией
-    name = message.text.strip()
-    phone = pending_phones.pop(user_id)
-    username = message.from_user.username or ""
-    register_user(user_id, username, name, phone)
-    log_registration({
-        "user_id": user_id,
-        "username": username,
-        "name": name,
-        "phone": phone
-    })
-    await message.answer(
-        f"✨ Спасибо, {name}! Теперь всё готово! Давай посмотрим, что подскажет тебе твоя карта сегодня или попробуем освоить нейрографику.",
-        reply_markup=main_menu_keyboard
+@router.message(Command("setcourse"))
+async def set_course(message: types.Message):
+    username = message.from_user.username
+    if not is_admin(username):
+        return
+    new_text = message.get_args()
+    if not new_text:
+        await message.answer("❌ Укажите новый текст курса.")
+        return
+    admin_data["course_text"] = new_text
+    await message.answer("✅ Описание курса обновлено.")
+
+@router.message(Command("addgreetingpic"))
+async def add_greeting_pic(message: types.Message):
+    username = message.from_user.username
+    if not is_admin(username):
+        return
+    if message.reply_to_message and message.reply_to_message.photo:
+        photo = message.reply_to_message.photo[-1]
+        file_id = photo.file_id
+        admin_data["greeting_images"].append(file_id)
+        await message.answer("✅ Картинка для приветствия добавлена.")
+    else:
+        await message.answer("❌ Ответьте на сообщение с фото, чтобы добавить картинку.")
+
+@router.message(Command("addcoursepic"))
+async def add_course_pic(message: types.Message):
+    username = message.from_user.username
+    if not is_admin(username):
+        return
+    if message.reply_to_message and message.reply_to_message.photo:
+        photo = message.reply_to_message.photo[-1]
+        file_id = photo.file_id
+        admin_data["course_images"].append(file_id)
+        await message.answer("✅ Картинка для курса добавлена.")
+    else:
+        await message.answer("❌ Ответьте на сообщение с фото, чтобы добавить картинку.")
+
+@router.message(Command("viewadmin"))
+async def view_admin_data(message: types.Message):
+    username = message.from_user.username
+    if not is_admin(username):
+        return
+    text = (
+        f"📌 **Текущие настройки:**\n\n"
+        f"📜 **Приветствие:**\n{admin_data['greeting_text']}\n\n"
+        f"🎓 **Описание курса:**\n{admin_data['course_text']}\n\n"
+        f"🖼 **Картинки приветствия:** {len(admin_data['greeting_images'])} шт.\n"
+        f"🖼 **Картинки курса:** {len(admin_data['course_images'])} шт."
     )
+    await message.answer(text, parse_mode="Markdown")
+
 
